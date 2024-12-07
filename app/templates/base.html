@@ -154,9 +154,13 @@
                     <img src="{{ url_for('static', filename='images/logo.png' ) }}" style="height: 30px; border-radius: 25%;" alt="">
                 </a>
                 {% if current_user.is_authenticated %}
-                <form class="d-flex" role="search">
-                    <input class="form-control me-2" type="search"
-                        placeholder="Search" aria-label="Search">
+                <form class="d-flex align-items-center justify-content-center" role="search">
+                    <div class="input-group flex-grow-1">
+                        <input type="text" class="form-control" placeholder="Search" aria-label="Search">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                    </div>
                 </form>
                 {% endif %}
             </div>
