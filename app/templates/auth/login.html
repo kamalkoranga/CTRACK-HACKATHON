@@ -81,6 +81,9 @@
     <div class="col-5 login-left px-5">
         <h1 class="mb-5 fw-medium" style="color: #203356;">Welcome to your professional community</h1>
         {{ wtf.quick_form(form) }}
+        <div style="margin-top: 1em;">
+            <input type="checkbox" id="show-password" onclick="togglePassword()"> Show Password
+        </div>
         <a href="{{url_for('auth.register')}}" class="btn btn-outline-dark fw-bold">New to CTRACK? Join now</a>
     </div>
 
@@ -89,3 +92,15 @@
     </div>
 </div>
 {% endblock content %}
+
+{% block script %}
+    <script>
+        function togglePassword() {
+                const passwordField = document.querySelector('input[type="password"]');
+                if (passwordField) {
+                    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordField.setAttribute('type', type);
+                }
+            }
+    </script>
+{% endblock %}
