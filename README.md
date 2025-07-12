@@ -13,6 +13,7 @@
 ## 🌐 Live Demo
 
 🔗 [Live URL](https://ctrack-hackathon-e93l.onrender.com)
+> ⚠️ Note: The site may load slowly as it's hosted on Render (free tier) with a Supabase backend. Performance may vary.
 
 ## 🛠️ Tech Stack
 
