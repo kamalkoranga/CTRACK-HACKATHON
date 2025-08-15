@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block title %}CTRACK: Log In or Sign Up{% endblock title %}
+
+{% block style %}
+<style>
+    .login-left form > *, .login-left > a {
+        margin-top: 1em !important;
+    }
+
+    .login-left form label {
+        margin-bottom: 0.5em;
+    }
+
+    .login-left h1 {
+        color: #8f5849;
+        font-size: 52px !important;
+        font-weight: 200;
+    }
+
+    #submit {
+        background-color: #0d6efd;
+        color: #fff;
+        width: 100%;
+        font-weight: 900;
+    }
+
+    .login-left > a {
+        width: 100%;
+    }
+
+    .login-right img {
+        width: 125%;
+    }
+
+    .login-left label {
+        font-weight: 900;
+    }
+
+    @media screen and (max-width: 768px) {
+        .login-left {
+            width: 100% !important;
+            margin-bottom: 5em;
+        }
+
+        .login-left > h1 {
+            font-size: 32px !important;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 100% !important;
+        }
+
+        .login-right {
+            width: 100% !important;
+        }
+
+        .login-right img {
+            width: 60%;
+        }
+    }
+
+    @media screen and (max-width: 427px) {
+        nav > .container {
+            justify-content: center !important;
+        }
+    }
+
+    @media screen and (max-width: 385px) {
+        .nav-second {
+            width: 60% !important;
+        }
+    }
+</style>
+{% endblock style %}
+
+{% block content %}
+<div class="row align-items-center mb-3" style="">
+    <div class="col-5 login-left px-5">
+        <h1 class="mb-5 fw-medium" style="color: #203356;">Welcome to your professional community</h1>
+        {{ wtf.quick_form(form) }}
+        <div style="margin-top: 1em;">
+            <input type="checkbox" id="show-password" onclick="togglePassword()"> Show Password
+        </div>
+        <a href="{{url_for('auth.register')}}" class="btn btn-outline-dark fw-bold">New to CTRACK? Join now</a>
+    </div>
+
+    <div class="col-7 login-right px-5 d-flex justify-content-center align-items-center">
+        <img style="width: 400px; border-radius: 12.5%;" src="{{url_for('static', filename='images/bg.png')}}" alt="hero-image">
+    </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        function togglePassword() {
+                const passwordField = document.querySelector('input[type="password"]');
+                if (passwordField) {
+                    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordField.setAttribute('type', type);
+                }
+            }
+    </script>
+{% endblock %}
