@@ -30,3 +30,6 @@
 
 ## 🏁 Built At
 This project was created during [24 Hr Hackathon], at GEHU Haldwani inspired by the need for a focused space to track developer and student learning paths — like a portfolio, but centered on growth and progress.
+
+### ElasticSearch docker container:
+docker run --name elasticsearch -d --rm -p 9200:9200 --memory="2GB" -e discovery.type=single-node -e xpack.security.enabled=false -t docker.elastic.co/elasticsearch/elasticsearch:9.0.3
