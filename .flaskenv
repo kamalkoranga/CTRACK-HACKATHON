@@ -1,0 +1,2 @@
+FLASK_APP=ctrack.py
+FLASK_DEBUG=1

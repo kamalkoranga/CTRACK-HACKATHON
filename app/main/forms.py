@@ -1,18 +1,16 @@
-from flask import request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField
 from wtforms.validators import ValidationError, DataRequired, Length
 import sqlalchemy as sa
-from flask_babel import _, lazy_gettext as _l
 from app import db
 from app.models import User
 
 
 class EditProfileForm(FlaskForm):
-    username = StringField(_l('Username'), validators=[DataRequired()])
-    about_me = TextAreaField(_l('About me'),
+    username = StringField('Username', validators=[DataRequired()])
+    about_me = TextAreaField('About me',
                              validators=[Length(min=0, max=140)])
-    submit = SubmitField(_l('Submit'))
+    submit = SubmitField('Submit')
 
     def __init__(self, original_username, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -23,7 +21,7 @@ class EditProfileForm(FlaskForm):
             user = db.session.scalar(sa.select(User).where(
                 User.username == username.data))
             if user is not None:
-                raise ValidationError(_('Please use a different username.'))
+                raise ValidationError('Please use a different username.')
 
 
 class EmptyForm(FlaskForm):
@@ -31,17 +29,12 @@ class EmptyForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    post = TextAreaField(_l('Say something'), validators=[
+    post = TextAreaField('Say something', validators=[
         DataRequired(), Length(min=1, max=140)])
-    submit = SubmitField(_l('Submit'))
+    submit = SubmitField('Submit')
 
 
-class SearchForm(FlaskForm):
-    q = StringField(_l('Search'), validators=[DataRequired()])
-
-    def __init__(self, *args, **kwargs):
-        if 'formdata' not in kwargs:
-            kwargs['formdata'] = request.args
-        if 'meta' not in kwargs:
-            kwargs['meta'] = {'csrf': False}
-        super(SearchForm, self).__init__(*args, **kwargs)
+class MessageForm(FlaskForm):
+    message = TextAreaField('Message', validators=[
+        DataRequired(), Length(min=1, max=140)])
+    submit = SubmitField('Submit')
