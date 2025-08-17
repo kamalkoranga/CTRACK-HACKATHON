@@ -10,8 +10,8 @@
   <div class="comments-section">
 
     <div class="d-flex gap-4 align-items-start">
-      {% if post.author.avatar %}
-        <img src="{{ post.author.avatar(50) }}" alt="Author's avatar" width="" class="mt-4 rounded-circle">
+      {% if current_user.avatar %}
+        <img src="{{ current_user.avatar(50) }}" alt="Author's avatar" width="" class="mt-4 rounded-circle">
       {% endif %}
       <div class="flex-grow-1">
         {{ wtf.quick_form(form)}}

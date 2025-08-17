@@ -11,11 +11,9 @@
       {% endfor %}
       <li><a href="{{ url_for('main.user', username=current_user.username) }}" class="link-primary link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">View your posts</a></li>
     </ul>
-
-    <hr class="mt-4">
   
   <!-- for explore route -->
-  {% else %}
+  {% elif posts %}
     {% for post in posts %}
     <a href="{{ url_for('main.post_detail', post_id=post.id) }}" class="text-decoration-none text-dark">
       {% include '_post.html' %}
@@ -36,7 +34,11 @@
         </li>
       </ul>
     </nav>
+  {% else %}
+    <p class="text-muted text-center mt-4">No posts available.</p>
   {% endif %}
+
+  <hr class="mt-4">
 
   {% if form %}
     {{ wtf.quick_form(form) }}

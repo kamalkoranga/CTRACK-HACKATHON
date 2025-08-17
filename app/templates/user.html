@@ -13,7 +13,7 @@
     {% endif %}
     <p>{{ user.followers_count() }} followers, {{ user.following_count() }} following.</p>
     {% if user == current_user %}
-      <p><a href="{{ url_for('main.edit_profile') }}">Edit your profile</a></p>
+      <p><a href="{{ url_for('main.edit_profile') }}" class="text-decoration-none">Edit your profile</a></p>
     {% elif not current_user.is_following(user) %}
     <p>
       <form action="{{ url_for('main.follow', username=user.username) }}" method="post">
