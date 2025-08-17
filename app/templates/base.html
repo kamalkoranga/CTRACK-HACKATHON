@@ -19,7 +19,7 @@
         crossorigin="anonymous">
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <nav class="navbar bg-dark navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
       <div class="container-fluid">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">CTrack</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,10 +28,10 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="{{ url_for('main.index') }}">Home</a>
+              <a class="nav-link" id="nav-index" aria-current="page" href="{{ url_for('main.index') }}">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="{{ url_for('main.explore') }}">Explore</a>
+              <a class="nav-link" id="nav-explore" aria-current="page" href="{{ url_for('main.explore') }}">Explore</a>
             </li>
           </ul>
           <ul class="navbar-nav mb-2 mb-lg-0">
@@ -41,7 +41,7 @@
             </li>
             {% else %}
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="{{ url_for('main.messages') }}">Messages
+              <a class="nav-link" id="nav-messages" aria-current="page" href="{{ url_for('main.messages') }}">Messages
                 {% set unread_message_count = current_user.unread_message_count() %}
                 <span id="message_count" class="badge text-bg-danger" style="visibility: {% if unread_message_count %}visible
                                                      {% else %}hidden{% endif %};">
@@ -50,7 +50,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="{{ url_for('main.user', username=current_user.username) }}">Profile</a>
+              <a class="nav-link" id="nav-user" aria-current="page" href="{{ url_for('main.user', username=current_user.username) }}">Profile</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" aria-current="page" href="{{ url_for('auth.logout') }}">Logout</a>
@@ -128,6 +128,13 @@
       }
       document.addEventListener('DOMContentLoaded', initialize_notifications);
       {% endif %}
+
+      routes = ['index', 'explore', 'messages', 'user']
+      routes.forEach(element => {
+        if (window.location.href.includes(element)) {
+          document.getElementById("nav-" + element).classList.add("active");
+        }
+      });
     </script>
   </body>
 </html>

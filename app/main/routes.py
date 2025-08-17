@@ -4,8 +4,8 @@ from flask import render_template, flash, redirect, url_for, request, \
 from flask_login import current_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.main.forms import EditProfileForm, EmptyForm, PostForm, MessageForm
-from app.models import User, Post, Message, Notification
+from app.main.forms import EditProfileForm, EmptyForm, PostForm, MessageForm, CommentForm
+from app.models import User, Post, Message, Notification, Comment
 from app.main import bp
 
 
@@ -51,6 +51,22 @@ def explore():
     return render_template('index.html', title='Explore',
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url)
+
+
+@bp.route('/post/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def post_detail(post_id):
+    form = CommentForm()
+    post = db.first_or_404(sa.select(Post).where(Post.id == post_id))
+    if form.validate_on_submit():
+        comment = Comment(body=form.body.data, post=post, author=current_user)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Your comment has been posted.')
+        return redirect(url_for('main.post_detail', post_id=post.id))
+    comments_query = sa.select(Comment).where(Comment.post_id == post.id).order_by(Comment.timestamp.asc())
+    comments = db.session.scalars(comments_query).all()
+    return render_template('post_detail.html', post=post, comments=comments, form=form)
 
 
 @bp.route('/user/<username>')

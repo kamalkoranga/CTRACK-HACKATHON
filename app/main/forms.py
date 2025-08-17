@@ -29,8 +29,14 @@ class EmptyForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    post = TextAreaField('Say something', validators=[
-        DataRequired()])
+    post = TextAreaField('', validators=[
+        DataRequired()], render_kw={'placeholder': 'Say something', 'rows': '15'})
+    submit = SubmitField('Submit')
+
+
+class CommentForm(FlaskForm):
+    body = TextAreaField('', validators=[
+        DataRequired(), Length(min=1, max=140)], render_kw={'placeholder': 'Leave a comment...', 'rows': '5'})
     submit = SubmitField('Submit')
 
 

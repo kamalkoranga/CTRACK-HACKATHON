@@ -19,7 +19,7 @@
 <div class="mb-3">
   {{ field.label(class='form-label') }}
   {% if autofocus %}
-  {{ field(class='form-control' + (' is-invalid' if field.errors else ''), autofocus=True, rows=15) }}
+  {{ field(class='form-control' + (' is-invalid' if field.errors else ''), autofocus=True) }}
   {% else %}
   {{ field(class='form-control' + (' is-invalid' if field.errors else '')) }}
   {% endif %}

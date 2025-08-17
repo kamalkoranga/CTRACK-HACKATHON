@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% import "bootstrap_wtf.html" as wtf %}
+
+{% block content %}
+  <h1>{{ post.body }}</h1>
+
+  <hr>
+
+  <!-- comments sections -->
+  <div class="comments-section">
+
+    <div class="d-flex gap-4 align-items-start">
+      {% if post.author.avatar %}
+        <img src="{{ post.author.avatar(50) }}" alt="Author's avatar" width="" class="mt-4 rounded-circle">
+      {% endif %}
+      <div class="flex-grow-1">
+        {{ wtf.quick_form(form)}}
+      </div>
+    </div>
+
+      <ul class="list-group mt-3">
+        {% for comment in comments %}
+        <div class="d-flex gap-4 align-items-start mb-4">
+          {% if comment.author.avatar %}
+            <img src="{{ comment.author.avatar(50) }}" alt="Author's avatar" class="mt-2 rounded-circle">
+          {% endif %}
+          <li class="list-group-item flex-grow-1">
+            <strong>{{ comment.author.username }}</strong>: {{ comment.body }}
+            <br>
+            <small class="text-muted">{{ comment.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+          </li>
+        </div>
+        {% else %}
+          <li class="list-group-item">No comments yet.</li>
+        {% endfor %}
+      </ul>
+  </div>
+{% endblock %}
