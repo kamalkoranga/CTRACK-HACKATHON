@@ -36,6 +36,9 @@ class User(UserMixin, db.Model):
 
     posts: so.WriteOnlyMapped['Post'] = so.relationship(
         back_populates='author')
+    comments: so.WriteOnlyMapped['Comment'] = so.relationship(
+        back_populates='author')
+
     following: so.WriteOnlyMapped['User'] = so.relationship(
         secondary=followers, primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
@@ -144,9 +147,27 @@ class Post(db.Model):
                                                index=True)
 
     author: so.Mapped[User] = so.relationship(back_populates='posts')
-
+    comments: so.WriteOnlyMapped['Comment'] = so.relationship(
+        back_populates='post')
     def __repr__(self):
         return '<Post {}>'.format(self.body)
+
+
+class Comment(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    body: so.Mapped[str] = so.mapped_column(sa.Text)
+    timestamp: so.Mapped[datetime] = so.mapped_column(
+        index=True, default=lambda: datetime.now(timezone.utc))
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
+                                               index=True)
+    post_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Post.id),
+                                                index=True)
+
+    author: so.Mapped[User] = so.relationship(back_populates='comments')
+    post: so.Mapped[Post] = so.relationship(back_populates='comments')
+
+    def __repr__(self):
+        return '<Comment {}>'.format(self.body)
 
 
 class Message(db.Model):
