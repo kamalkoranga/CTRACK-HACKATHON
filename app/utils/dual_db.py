@@ -26,7 +26,19 @@ def register_user(username, email, password_hash):
             session.close()
         async_write_to_remote(remote_commit)
     return user
-    
+
+
+# RESET PASSWORD
+def reset_password_remote(user_id, password_hash):
+    def remote_update():
+        session = RemoteSession()
+        user = session.get(User, user_id)
+        if user:
+            user.password_hash = password_hash
+            session.commit()
+        session.close()
+    async_write_to_remote(remote_update)
+
 
 # UPDATE LAST SEEN
 def update_last_seen_remote(user_id, last_seen):
@@ -117,3 +129,4 @@ def update_user_remote(user_id, username, about_me):
                 session.commit()
             session.close()
         async_write_to_remote(remote_update)
+

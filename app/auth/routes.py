@@ -8,7 +8,7 @@ from app.auth.forms import LoginForm, RegistrationForm, \
     ResetPasswordRequestForm, ResetPasswordForm
 from app.models import User
 from app.auth.email import send_password_reset_email
-from app.utils.dual_db import register_user
+from app.utils.dual_db import register_user, reset_password_remote
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -78,6 +78,7 @@ def reset_password(token):
     if form.validate_on_submit():
         user.set_password(form.password.data)
         db.session.commit()
+        reset_password_remote(user.id, user.password_hash)
         flash('Your password has been reset.')
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
