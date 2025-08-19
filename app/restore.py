@@ -2,6 +2,7 @@ import sqlite3
 import psycopg2
 from urllib.parse import urlparse
 import datetime
+import os
 
 def sanitize_row(row):
     return tuple(
@@ -78,5 +79,6 @@ def convert_postgres_to_sqlite(pg_conn_str, sqlite_file):
 
 # Usage
 POSTGRES_CONN_STR = "postgresql://ctrack_admin:npg_4ROqykw1lWhi@ep-dawn-unit-a1u8u1fu-pooler.ap-southeast-1.aws.neon.tech/ctrack?sslmode=require&channel_binding=require"
-SQLITE_DB_FILE = "app.db"
+PARENT_DIR = os.path.dirname(os.path.dirname(__file__))
+SQLITE_DB_FILE = os.path.join(PARENT_DIR, "app.db")
 convert_postgres_to_sqlite(POSTGRES_CONN_STR, SQLITE_DB_FILE)
