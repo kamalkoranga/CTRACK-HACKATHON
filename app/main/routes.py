@@ -8,7 +8,7 @@ from app.main.forms import EditProfileForm, EmptyForm, PostForm, MessageForm, Co
 from app.models import User, Post, Message, Notification, Comment
 from app.main import bp
 from app.utils.dual_db import update_last_seen_remote, create_post, create_comment, \
-    update_user_remote
+    update_user_remote, update_follow_remote
 
 
 @bp.before_app_request
@@ -127,6 +127,7 @@ def follow(username):
             return redirect(url_for('main.user', username=username))
         current_user.follow(user)
         db.session.commit()
+        update_follow_remote(current_user.id, user.id, action='follow')
         flash(f'You are following {username}!')
         return redirect(url_for('main.user', username=username))
     else:
@@ -148,6 +149,7 @@ def unfollow(username):
             return redirect(url_for('main.user', username=username))
         current_user.unfollow(user)
         db.session.commit()
+        update_follow_remote(current_user.id, user.id, action='unfollow')
         flash(f'You are not following {username}.')
         return redirect(url_for('main.user', username=username))
     else:

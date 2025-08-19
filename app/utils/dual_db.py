@@ -130,3 +130,38 @@ def update_user_remote(user_id, username, about_me):
             session.close()
         async_write_to_remote(remote_update)
 
+
+# UPDATE FOLLOW REMOTE
+def update_follow_remote(follower_id, followed_id, action):
+    def remote_update():
+        session = RemoteSession()
+        # Directly manipulate the association table for follows
+        follower = session.get(User, follower_id)
+        followed = session.get(User, followed_id)
+        if follower and followed:
+            association_table = User.followers.property.secondary
+            if action == 'follow':
+                # Check if already following
+                exists = session.execute(
+                    sa.select(association_table).where(
+                        association_table.c.follower_id == follower_id,
+                        association_table.c.followed_id == followed_id
+                    )
+                ).first()
+                if not exists:
+                    session.execute(
+                        association_table.insert().values(
+                            follower_id=follower_id,
+                            followed_id=followed_id
+                        )
+                    )
+            elif action == 'unfollow':
+                session.execute(
+                    association_table.delete().where(
+                        association_table.c.follower_id == follower_id,
+                        association_table.c.followed_id == followed_id
+                    )
+                )
+            session.commit()
+        session.close()
+    async_write_to_remote(remote_update)
