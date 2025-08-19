@@ -2,7 +2,7 @@ import threading
 import os
 import sqlalchemy as sa
 from app import db
-from app.models import Post, User
+from app.models import Post, User, Comment
 from sqlalchemy.orm import sessionmaker
 
 REMOTE_DB_URL = os.environ.get('REMOTE_DATABASE_URL')
@@ -55,3 +55,34 @@ def create_post(body, author: User):
             session.close()
         async_write_to_remote(remote_commit)
     return post
+
+
+# CREATE COMMENT
+def create_comment(body, post: Post, author: User):
+    comment = Comment(body=body, post=post, author=author)
+    db.session.add(comment)
+    db.session.commit()
+
+    # Extract values before leaving app/request context
+    comment_id = comment.id
+    comment_body = comment.body
+    comment_post_id = comment.post_id
+    comment_user_id = comment.user_id
+    comment_timestamp = comment.timestamp
+
+    if remote_engine:
+        def remote_commit():
+            session = RemoteSession()
+            remote_comment = Comment(
+                id=comment_id,
+                body=comment_body,
+                post_id=comment_post_id,
+                user_id=comment_user_id,
+                timestamp=comment_timestamp
+            )
+            session.add(remote_comment)
+            session.commit()
+            session.close()
+        async_write_to_remote(remote_commit)
+    return comment
+

@@ -7,7 +7,7 @@ from app import db
 from app.main.forms import EditProfileForm, EmptyForm, PostForm, MessageForm, CommentForm
 from app.models import User, Post, Message, Notification, Comment
 from app.main import bp
-from app.utils.dual_db import update_last_seen_remote, create_post
+from app.utils.dual_db import update_last_seen_remote, create_post, create_comment
 
 
 @bp.before_app_request
@@ -59,9 +59,7 @@ def post_detail(post_id):
     form = CommentForm()
     post = db.first_or_404(sa.select(Post).where(Post.id == post_id))
     if form.validate_on_submit():
-        comment = Comment(body=form.body.data, post=post, author=current_user)
-        db.session.add(comment)
-        db.session.commit()
+        create_comment(body=form.body.data, post=post, author=current_user)
         flash('Your comment has been posted.')
         return redirect(url_for('main.post_detail', post_id=post.id))
     comments_query = sa.select(Comment).where(Comment.post_id == post.id).order_by(Comment.timestamp.asc())
