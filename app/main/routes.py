@@ -7,6 +7,7 @@ from app import db
 from app.main.forms import EditProfileForm, EmptyForm, PostForm, MessageForm, CommentForm
 from app.models import User, Post, Message, Notification, Comment
 from app.main import bp
+from app.utils.dual_db import update_last_seen_remote, create_post
 
 
 @bp.before_app_request
@@ -14,6 +15,7 @@ def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
+        update_last_seen_remote(current_user.id, current_user.last_seen)
 
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -22,9 +24,7 @@ def before_request():
 def index():
     form = PostForm()
     if form.validate_on_submit():
-        post = Post(body=form.post.data, author=current_user)
-        db.session.add(post)
-        db.session.commit()
+        create_post(body=form.post.data, author=current_user)
         flash('Your post is now live!')
         return redirect(url_for('main.index'))
     

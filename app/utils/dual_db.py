@@ -1,0 +1,57 @@
+import threading
+import os
+import sqlalchemy as sa
+from app import db
+from app.models import Post, User
+from sqlalchemy.orm import sessionmaker
+
+REMOTE_DB_URL = os.environ.get('REMOTE_DATABASE_URL')
+remote_engine = sa.create_engine(REMOTE_DB_URL) if REMOTE_DB_URL else None
+RemoteSession = sessionmaker(bind=remote_engine) if remote_engine else None
+
+
+# UPDATE LAST SEEN
+def update_last_seen_remote(user_id, last_seen):
+    if remote_engine:
+        def remote_update():
+            session = RemoteSession()
+            remote_user = session.get(User, user_id)
+            if remote_user:
+                remote_user.last_seen = last_seen
+                session.commit()
+            session.close()
+        threading.Thread(target=remote_update).start()
+
+
+# ASYNC WRITE TO REMOTE
+def async_write_to_remote(func, *args, **kwargs):
+    if remote_engine:
+        threading.Thread(target=func, args=args, kwargs=kwargs).start()
+
+
+# CREATE POST
+def create_post(body, author: User):
+    post = Post(body=body, author=author)
+    db.session.add(post)
+    db.session.commit()
+
+    # Extract values before leaving app/request context
+    post_id = post.id
+    post_body = post.body
+    post_user_id = post.user_id
+    post_timestamp = post.timestamp
+
+    if remote_engine:
+        def remote_commit():
+            session = RemoteSession()
+            remote_post = Post(
+                id=post_id,
+                body=post_body,
+                user_id=post_user_id,
+                timestamp=post_timestamp
+            )
+            session.add(remote_post)
+            session.commit()
+            session.close()
+        async_write_to_remote(remote_commit)
+    return post
