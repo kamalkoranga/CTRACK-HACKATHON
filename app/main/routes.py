@@ -8,7 +8,8 @@ from app.main.forms import EditProfileForm, EmptyForm, PostForm, MessageForm, Co
 from app.models import User, Post, Message, Notification, Comment
 from app.main import bp
 from app.utils.dual_db import update_last_seen_remote, create_post, create_comment, \
-    update_user_remote, update_follow_remote
+    update_user_remote, update_follow_remote, create_message, add_notification_remote, \
+    update_last_message_read_time_remote
 
 
 @bp.before_app_request
@@ -163,12 +164,12 @@ def send_message(recipient):
     user = db.first_or_404(sa.select(User).where(User.username == recipient))
     form = MessageForm()
     if form.validate_on_submit():
-        msg = Message(author=current_user, recipient=user,
-                      body=form.message.data)
-        db.session.add(msg)
+        create_message(sender_id=current_user.id, recipient_id=user.id, body=form.message.data)
         user.add_notification('unread_message_count',
                               user.unread_message_count())
         db.session.commit()
+        add_notification_remote(user.id, 'unread_message_count',
+                                 user.unread_message_count())
         flash('Your message has been sent.')
         return redirect(url_for('main.user', username=recipient))
     return render_template('send_message.html', title='Send Message',
@@ -181,6 +182,10 @@ def messages():
     current_user.last_message_read_time = datetime.now(timezone.utc)
     current_user.add_notification('unread_message_count', 0)
     db.session.commit()
+
+    update_last_message_read_time_remote(current_user.id, current_user.last_message_read_time)
+    add_notification_remote(current_user.id, 'unread_message_count', 0)
+
     page = request.args.get('page', 1, type=int)
     query = current_user.messages_received.select().order_by(
         Message.timestamp.desc())

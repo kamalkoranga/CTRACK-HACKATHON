@@ -1,9 +1,11 @@
 import threading
 import os
+import json
 import sqlalchemy as sa
 from app import db
-from app.models import Post, User, Comment
+from app.models import Post, User, Comment, Message, Notification
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime, timezone
 
 REMOTE_DB_URL = os.environ.get('REMOTE_DATABASE_URL')
 remote_engine = sa.create_engine(REMOTE_DB_URL) if REMOTE_DB_URL else None
@@ -162,6 +164,59 @@ def update_follow_remote(follower_id, followed_id, action):
                         association_table.c.followed_id == followed_id
                     )
                 )
+            session.commit()
+        session.close()
+    async_write_to_remote(remote_update)
+
+
+# CREATE MESSAGES
+def create_message(sender_id, recipient_id, body, timestamp=None):
+    msg = Message(sender_id=sender_id, recipient_id=recipient_id, body=body, timestamp=timestamp or datetime.now(timezone.utc))
+    db.session.add(msg)
+    db.session.commit()
+    msg_data = dict(
+        id=msg.id,
+        sender_id=msg.sender_id,
+        recipient_id=msg.recipient_id,
+        body=msg.body,
+        timestamp=msg.timestamp
+    )
+    if remote_engine:
+        def remote_commit():
+            session = RemoteSession()
+            remote_msg = Message(**msg_data)
+            session.add(remote_msg)
+            session.commit()
+            session.close()
+        async_write_to_remote(remote_commit)
+    return msg
+
+
+# ADD NOTIFICATION TO REMOTE
+def add_notification_remote(user_id, name, data):
+    def remote_update():
+        session = RemoteSession()
+        # Delete existing notification with same name for user
+        session.execute(
+            Notification.__table__.delete().where(
+                Notification.user_id == user_id,
+                Notification.name == name
+            )
+        )
+        n = Notification(name=name, payload_json=json.dumps(data), user_id=user_id)
+        session.add(n)
+        session.commit()
+        session.close()
+    async_write_to_remote(remote_update)
+
+
+# UPDATE LAST MESSAGE READ TIME REMOTE
+def update_last_message_read_time_remote(user_id, last_message_read_time):
+    def remote_update():
+        session = RemoteSession()
+        user = session.get(User, user_id)
+        if user:
+            user.last_message_read_time = last_message_read_time
             session.commit()
         session.close()
     async_write_to_remote(remote_update)
