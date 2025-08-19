@@ -7,7 +7,8 @@ from app import db
 from app.main.forms import EditProfileForm, EmptyForm, PostForm, MessageForm, CommentForm
 from app.models import User, Post, Message, Notification, Comment
 from app.main import bp
-from app.utils.dual_db import update_last_seen_remote, create_post, create_comment
+from app.utils.dual_db import update_last_seen_remote, create_post, create_comment, \
+    update_user_remote
 
 
 @bp.before_app_request
@@ -101,6 +102,7 @@ def edit_profile():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data
         db.session.commit()
+        update_user_remote(current_user.id, current_user.username, current_user.about_me)
         flash('Your changes have been saved.')
         return redirect(url_for('main.edit_profile'))
     elif request.method == 'GET':

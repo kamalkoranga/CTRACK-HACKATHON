@@ -86,3 +86,16 @@ def create_comment(body, post: Post, author: User):
         async_write_to_remote(remote_commit)
     return comment
 
+
+# UPDATE USER REMOTE
+def update_user_remote(user_id, username, about_me):
+    if remote_engine:
+        def remote_update():
+            session = RemoteSession()
+            remote_user = session.get(User, user_id)
+            if remote_user:
+                remote_user.username = username
+                remote_user.about_me = about_me
+                session.commit()
+            session.close()
+        async_write_to_remote(remote_update)
