@@ -2,7 +2,7 @@ import os
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 import threading
-from app.models import User, Post, Like
+from app.models import User, Post, Like, Comment
 from app import db
 
 REMOTE_DB_URL = os.environ.get('REMOTE_CTRACK_DB_URL')
@@ -130,3 +130,33 @@ def toggle_like_remote(author_id, post_id, like):
             session.commit()
             session.close()
         async_write_to_remote(remote_toggle)
+
+
+# CREATE COMMENT
+def create_comment(body, post: Post, author: User):
+    comment = Comment(body=body, post=post, author=author)
+    db.session.add(comment)
+    db.session.commit()
+
+    # Extract values before leaving app/request context
+    comment_id = comment.id
+    comment_body = comment.body
+    comment_post_id = comment.post_id
+    comment_author_id = comment.author_id
+    comment_timestamp = comment.timestamp
+
+    if remote_engine:
+        def remote_commit():
+            session = RemoteSession()
+            remote_comment = Comment(
+                id=comment_id,
+                body=comment_body,
+                post_id=comment_post_id,
+                author_id=comment_author_id,
+                timestamp=comment_timestamp
+            )
+            session.add(remote_comment)
+            session.commit()
+            session.close()
+        async_write_to_remote(remote_commit)
+    return comment

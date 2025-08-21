@@ -14,7 +14,8 @@ from .forms import PostForm, EditProfileForm
 from ..models import Post, User, Like, Comment
 from .. import db
 from ..email import send_email
-from app.utils.dual_db import create_post, update_user_profile, toggle_like_remote
+from app.utils.dual_db import create_post, update_user_profile, toggle_like_remote, \
+    create_comment
 
 
 @main.route("/feed", methods=["GET", "POST"])
@@ -182,10 +183,12 @@ def add_comment(post_id):
         author=current_user._get_current_object(),
         post_id=data["post_id"],
     )
-
-    # Add the comment to the database session
-    db.session.add(comment)
-    db.session.commit()
+    
+    create_comment(
+        body=data["body"],
+        post=post,
+        author=current_user._get_current_object()
+    )
 
     send_email(
         '[CTrack] Notification: New Comment on Your Post',
