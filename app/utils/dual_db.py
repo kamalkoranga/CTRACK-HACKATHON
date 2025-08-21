@@ -2,7 +2,7 @@ import os
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 import threading
-from app.models import User
+from app.models import User, Post
 from app import db
 
 REMOTE_DB_URL = os.environ.get('REMOTE_CTRACK_DB_URL')
@@ -46,3 +46,45 @@ def confirm_user(username, email):
             session.close()
         async_write_to_remote(remote_confirm)
     return True
+
+
+# CREATE POST
+def create_post(body, post_name, post_data, author_id) -> Post:
+    post = Post(
+        body=body,
+        post_name=post_name,
+        post_data=post_data,
+        author_id=author_id
+    )
+    # Save to local DB
+    db.session.add(post)
+    db.session.commit()
+
+    post_id = post.id
+    post_body = post.body
+    post_body_html = post.body_html
+    post_post_name = post.post_name
+    post_post_data = post.post_data
+    post_timestamp = post.timestamp
+    post_featured = post.featured
+    post_author_id = post.author_id
+
+    # Save to remote DB asynchronously
+    if remote_engine:
+        def remote_commit():
+            session = RemoteSession()
+            remote_post = Post(
+                id=post_id,
+                body=post_body,
+                body_html=post_body_html,
+                post_name=post_post_name,
+                post_data=post_post_data,
+                timestamp=post_timestamp,
+                featured=post_featured,
+                author_id=post_author_id
+            )
+            session.add(remote_post)
+            session.commit()
+            session.close()
+        async_write_to_remote(remote_commit)
+    return post

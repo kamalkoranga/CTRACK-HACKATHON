@@ -14,42 +14,35 @@ from .forms import PostForm, EditProfileForm
 from ..models import Post, User, Like, Comment
 from .. import db
 from ..email import send_email
+from app.utils.dual_db import create_post
 
 
 @main.route("/feed", methods=["GET", "POST"])
 @login_required
 def index():
-    # Create an instance of the PostForm class
     form = PostForm()
 
-    # Check if the form has been submitted and passes form validation
     if form.validate_on_submit():
-        post = Post(
+        create_post(
             body=form.body.data,
             post_name=form.post.data.filename,
             post_data=form.post.data.read(),
-            author_id=current_user.id,
+            author_id=current_user.id
         )
 
-        # Add the new post to the database session
-        db.session.add(post)
-
-        # Commit the changes to the database
-        db.session.commit()
-
-        # Display a flash message to indicate successful posting
         flash("Posted Successfully")
-
-        # Redirect the user to the 'index' endpoint
         return redirect(url_for("main.index"))
 
     # Retrieve all posts from the database in descending order of timestamp
 
     page = request.args.get("page", 1, type=int)
-    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+    pagination = Post.query.order_by(Post.id.desc()).paginate(
         page=page, per_page=10, error_out=False
     )
     posts = pagination.items
+
+    for post in posts:
+        print(post.body)
 
     # Retrieve all comments from the database
     comments = Comment.query.all()
