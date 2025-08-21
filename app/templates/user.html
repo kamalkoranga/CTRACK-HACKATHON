@@ -302,8 +302,8 @@
                                                 {{ user_from_users.name }}
                                             </span><small class="text-secondary"> · 3rd</small><br>
                                             <span class="text-dark" style="font-size: 14px;">
-                                                {{ user_from_users.about_me[:40] }}
-                                                {% if user_from_users.about_me|length > 40 %} ...{% endif %}
+                                                {{ user_from_users.about_me[:40] if user_from_users.about_me else '' }}
+                                                {% if user_from_users.about_me and user_from_users.about_me|length > 40 %} ...{% endif %}
                                             </span>
                                         </a>
                                         {% if not current_user.is_following(user_from_users) %}
