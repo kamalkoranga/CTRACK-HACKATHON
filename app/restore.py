@@ -78,7 +78,9 @@ def convert_postgres_to_sqlite(pg_conn_str, sqlite_file):
     print(f"Data has been successfully exported to {sqlite_file}")
 
 # Usage
-POSTGRES_CONN_STR = "postgresql://ctrack_admin:npg_4ROqykw1lWhi@ep-dawn-unit-a1u8u1fu-pooler.ap-southeast-1.aws.neon.tech/ctrack?sslmode=require&channel_binding=require"
+from dotenv import load_dotenv
+load_dotenv()
+POSTGRES_CONN_STR = os.getenv("REMOTE_DATABASE_URL")
 PARENT_DIR = os.path.dirname(os.path.dirname(__file__))
 SQLITE_DB_FILE = os.path.join(PARENT_DIR, "app.db")
 convert_postgres_to_sqlite(POSTGRES_CONN_STR, SQLITE_DB_FILE)

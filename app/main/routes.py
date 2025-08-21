@@ -83,7 +83,7 @@ def user(username):
     prev_url = url_for('main.user', username=user.username,
                        page=posts.prev_num) if posts.has_prev else None
     form = EmptyForm()
-    return render_template('user.html', user=user, posts=posts.items,
+    return render_template('user.html', title=user.username, user=user, posts=posts.items,
                            next_url=next_url, prev_url=prev_url, form=form)
 
 
@@ -196,7 +196,7 @@ def messages():
         if messages.has_next else None
     prev_url = url_for('main.messages', page=messages.prev_num) \
         if messages.has_prev else None
-    return render_template('messages.html', messages=messages.items,
+    return render_template('messages.html', title='Messages', messages=messages.items,
                            next_url=next_url, prev_url=prev_url)
 
 
