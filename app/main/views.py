@@ -14,7 +14,7 @@ from .forms import PostForm, EditProfileForm
 from ..models import Post, User, Like, Comment
 from .. import db
 from ..email import send_email
-from app.utils.dual_db import create_post
+from app.utils.dual_db import create_post, update_user_profile
 
 
 @main.route("/feed", methods=["GET", "POST"])
@@ -113,6 +113,8 @@ def edit_profile():
         # changes
         db.session.add(current_user._get_current_object())
         db.session.commit()
+
+        update_user_profile(current_user)
 
         # Display a flash message to indicate successful profile update
         flash("Your profile has been updated.")

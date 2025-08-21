@@ -35,7 +35,7 @@ def register_user(username, email, password_hash):
 
 
 # CONFIRM USER
-def confirm_user(username, email):
+def confirm_user(email):
     if remote_engine:
         def remote_confirm():
             session = RemoteSession()
@@ -88,3 +88,27 @@ def create_post(body, post_name, post_data, author_id) -> Post:
             session.close()
         async_write_to_remote(remote_commit)
     return post
+
+
+# UPDATE USER PROFILE
+def update_user_profile(user: User):
+    user_id = user.id
+    username = user.username
+    full_name = user.name
+    headline = user.headline
+    location = user.location
+    about_me = user.about_me
+
+    if remote_engine:
+        def remote_update():
+            session = RemoteSession()
+            remote_user = session.get(User, user_id)
+            if remote_user:
+                remote_user.username = username
+                remote_user.name = full_name
+                remote_user.headline = headline
+                remote_user.location = location
+                remote_user.about_me = about_me
+                session.commit()
+            session.close()
+        async_write_to_remote(remote_update)
