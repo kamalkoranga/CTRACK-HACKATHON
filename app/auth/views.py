@@ -7,6 +7,7 @@ from .. import db
 from app.email import send_email
 from flask_login import login_user, login_required, current_user, logout_user
 import random
+from app.utils.dual_db import register_user
 
 
 @auth.before_app_request
@@ -150,8 +151,11 @@ def register():
         )
 
         # Add the user to the database session and commit the changes
-        db.session.add(user)
-        db.session.commit()
+        register_user(
+            user.username,
+            user.email,
+            user.password_hash
+        )
 
         # Generate a confirmation token for the user
         token = user.generate_confirmation_token()
