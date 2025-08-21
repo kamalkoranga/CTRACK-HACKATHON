@@ -160,3 +160,33 @@ def create_comment(body, post: Post, author: User):
             session.close()
         async_write_to_remote(remote_commit)
     return comment
+
+
+# FOLLOW USER
+def follow_user_remote(follower_id, followed_id):
+    if remote_engine:
+        def remote_follow():
+            session = RemoteSession()
+            # Assuming you have a Follow model with follower_id and followed_id
+            from app.models import Follow
+            follow = session.query(Follow).filter_by(follower_id=follower_id, followed_id=followed_id).first()
+            if not follow:
+                follow = Follow(follower_id=follower_id, followed_id=followed_id)
+                session.add(follow)
+                session.commit()
+            session.close()
+        async_write_to_remote(remote_follow)
+
+
+# UNFOLLOW USER
+def unfollow_user_remote(follower_id, followed_id):
+    if remote_engine:
+        def remote_unfollow():
+            session = RemoteSession()
+            from app.models import Follow
+            follow = session.query(Follow).filter_by(follower_id=follower_id, followed_id=followed_id).first()
+            if follow:
+                session.delete(follow)
+                session.commit()
+            session.close()
+        async_write_to_remote(remote_unfollow)

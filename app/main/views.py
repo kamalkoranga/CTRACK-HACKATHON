@@ -15,7 +15,7 @@ from ..models import Post, User, Like, Comment
 from .. import db
 from ..email import send_email
 from app.utils.dual_db import create_post, update_user_profile, toggle_like_remote, \
-    create_comment
+    create_comment, follow_user_remote, unfollow_user_remote
 
 
 @main.route("/feed", methods=["GET", "POST"])
@@ -205,15 +205,11 @@ def add_comment(post_id):
 @main.route("/follow/<username>")
 @login_required
 def follow(username):
-    # Retrieve the user object from the database based on the provided username
     user_to_follow = User.query.filter_by(username=username).first()
-
-    # Follow the specified user by calling the 'follow' method of the current
-    # user object.
     current_user.follow(user_to_follow)
-
-    # Commit the changes made to the database.
     db.session.commit()
+
+    follow_user_remote(current_user.id, user_to_follow.id)
 
     send_email(
         '[CTrack] Notification: New Follower',
@@ -230,15 +226,11 @@ def follow(username):
 @main.route("/unfollow/<username>")
 @login_required
 def unfollow(username):
-    # Retrieve the user object from the database based on the provided username
     user_to_unfollow = User.query.filter_by(username=username).first()
-
-    # Unfollow the specified user by calling the 'unollow' method of the
-    # current user object.
     current_user.unfollow(user_to_unfollow)
-
-    # Commit the changes made to the database.
     db.session.commit()
+
+    unfollow_user_remote(current_user.id, user_to_unfollow.id)
 
     # Return a JSON response indicating that the unfollow action was
     # successful.
