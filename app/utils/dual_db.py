@@ -2,7 +2,7 @@ import os
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 import threading
-from app.models import User, Post
+from app.models import User, Post, Like
 from app import db
 
 REMOTE_DB_URL = os.environ.get('REMOTE_CTRACK_DB_URL')
@@ -112,3 +112,21 @@ def update_user_profile(user: User):
                 session.commit()
             session.close()
         async_write_to_remote(remote_update)
+
+
+# LIKE/UNLIKE POST
+def toggle_like_remote(author_id, post_id, like):
+    if remote_engine:
+        def remote_toggle():
+            session = RemoteSession()
+            remote_like = session.query(Like).filter_by(author_id=author_id, post_id=post_id).first()
+            if like:
+                if not remote_like:
+                    remote_like = Like(author_id=author_id, post_id=post_id)
+                    session.add(remote_like)
+            else:
+                if remote_like:
+                    session.delete(remote_like)
+            session.commit()
+            session.close()
+        async_write_to_remote(remote_toggle)

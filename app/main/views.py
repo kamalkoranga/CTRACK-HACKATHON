@@ -14,7 +14,7 @@ from .forms import PostForm, EditProfileForm
 from ..models import Post, User, Like, Comment
 from .. import db
 from ..email import send_email
-from app.utils.dual_db import create_post, update_user_profile
+from app.utils.dual_db import create_post, update_user_profile, toggle_like_remote
 
 
 @main.route("/feed", methods=["GET", "POST"])
@@ -40,9 +40,6 @@ def index():
         page=page, per_page=10, error_out=False
     )
     posts = pagination.items
-
-    for post in posts:
-        print(post.body)
 
     # Retrieve all comments from the database
     comments = Comment.query.all()
@@ -150,27 +147,13 @@ def like_post(post_id):
         # If the user has already liked the post, remove the like
         db.session.delete(like)
         db.session.commit()
+        toggle_like_remote(current_user.id, post.id, like=False)
     else:
         # If the user has not liked the post, create a new like
         like = Like(author_id=current_user.id, post_id=post_id)
         db.session.add(like)
         db.session.commit()
-        # send_email(
-        #     # Email address of the post author
-        #     post.author.email,
-
-        #     # Subject of the email
-        #     'Notification: Your Post Received a Like!',
-
-        #     # Template for the email content
-        #     'email/liked',
-
-        #     # The post that received a like
-        #     post=post,
-
-        #     # The user who performed the like action
-        #     c_user=current_user
-        # )
+        toggle_like_remote(current_user.id, post.id, like=True)
     res = {
         # Total number of likes for the post
         "likes": len(post.likes),
