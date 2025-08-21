@@ -37,7 +37,7 @@ def index():
     # Retrieve all posts from the database in descending order of timestamp
 
     page = request.args.get("page", 1, type=int)
-    pagination = Post.query.order_by(Post.id.desc()).paginate(
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
         page=page, per_page=10, error_out=False
     )
     posts = pagination.items
@@ -239,5 +239,5 @@ def unfollow(username):
 @main.route('/network')
 @login_required
 def network():
-    users = User.query.all()
+    users = User.query.filter(User.id != current_user.id).all()
     return render_template('network.html', users=users, nav_color="rgba(0,0,0,0.6)", nav_color1='black')

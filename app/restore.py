@@ -6,7 +6,7 @@ import os
 
 def sanitize_row(row):
     return tuple(
-        value.isoformat() if isinstance(value, (datetime.datetime, datetime.date)) else value
+        value.strftime('%Y-%m-%d %H:%M:%S.%f') if isinstance(value, (datetime.datetime, datetime.date)) else value
         for value in row
     )
 
