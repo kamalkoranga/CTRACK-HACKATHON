@@ -32,3 +32,17 @@ def register_user(username, email, password_hash):
             session.close()
         async_write_to_remote(remote_commit)
     return user
+
+
+# CONFIRM USER
+def confirm_user(username, email):
+    if remote_engine:
+        def remote_confirm():
+            session = RemoteSession()
+            remote_user = session.query(User).filter_by(email=email).first()
+            if remote_user:
+                remote_user.confirmed = True
+                session.commit()
+            session.close()
+        async_write_to_remote(remote_confirm)
+    return True

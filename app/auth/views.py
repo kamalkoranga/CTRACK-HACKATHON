@@ -7,7 +7,7 @@ from .. import db
 from app.email import send_email
 from flask_login import login_user, login_required, current_user, logout_user
 import random
-from app.utils.dual_db import register_user
+from app.utils.dual_db import register_user, confirm_user
 
 
 @auth.before_app_request
@@ -186,31 +186,19 @@ def confirm(token):
     This function is used to confirm a user's account by checking if they are
     already confirmed and then attempting to confirm their account using a
     provided token.
-
-    :param token: The `token` parameter is a unique identifier that is
-    generated and sent to the user's email address when they register for an
-    account. It is used to confirm the user's account and verify their email
-    address
-
-    :return: a redirect to the main index page.
     """
-    # Check if the user is already confirmed
     if current_user.confirmed:
-
-        # Redirect to the main index page
         return redirect(url_for('main.index'))
 
-    # Attempt to confirm the user's account using the provided token
     if current_user.confirm(token):
-        db.session.commit()  # Commit the changes to the database
-
-        # Display a success message
+        db.session.commit()
+        # Dual DB confirmation logic
+        confirm_user(current_user.username, current_user.email)
         flash('You have confirmed your account. Thanks!')
     else:
-        # Display an error message
         flash('The confirmation link is invalid or has expired.')
 
-    return redirect(url_for('main.index'))  # Redirect to the main index page
+    return redirect(url_for('main.index'))
 
 
 @auth.route('/confirm')
