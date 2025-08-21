@@ -5,6 +5,7 @@ from flask import (
     url_for,
     jsonify,
     request,
+    current_app
 )
 from . import main
 from flask_login import login_required, current_user
@@ -209,23 +210,11 @@ def add_comment(post_id):
     db.session.commit()
 
     send_email(
-        # Recipient's email address
-        post.author.email,
-
-        # Email subject
-        'Notification: New Comment on Your Post',
-
-        # Email template to use
-        'email/commented',
-
-        # Post object
-        post=post,
-
-        # Comment object
-        comment=comment,
-
-        # The user who commented
-        c_user=current_user
+        '[CTrack] Notification: New Comment on Your Post',
+        sender=current_app.config['CTRACK_ADMIN'],
+        recipients=[post.author.email],
+        text_body=render_template('email/commented.txt', post=post, comment=comment, c_user=current_user),
+        html_body=render_template('email/commented.html', post=post, comment=comment, c_user=current_user)
     )
 
     # Return a JSON response indicating successful addition of the comment
@@ -246,20 +235,11 @@ def follow(username):
     db.session.commit()
 
     send_email(
-        # Recipient's email address
-        user_to_follow.email,
-
-        # Subject of the email
-        'Notification: New Follow',
-
-        # Template for the email content
-        'email/follow',
-
-        # user being followed
-        followed=user_to_follow,
-
-        # current user
-        c_user=current_user
+        '[CTrack] Notification: New Follower',
+        sender=current_app.config['CTRACK_ADMIN'],
+        recipients=[user_to_follow.email],
+        text_body=render_template('email/follow.txt', followed=user_to_follow, c_user=current_user),
+        html_body=render_template('email/follow.html', followed=user_to_follow, c_user=current_user)
     )
 
     # Return a JSON response indicating that the follow action was successful.

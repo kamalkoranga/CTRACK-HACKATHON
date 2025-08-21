@@ -4,3 +4,4 @@ __pycache__/
 data-dev.sqlite
 .vscode/
 data.sqlite
+app.db

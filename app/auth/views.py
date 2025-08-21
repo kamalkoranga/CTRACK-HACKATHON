@@ -1,10 +1,10 @@
 from . import auth
 from flask import render_template
-from flask import request, url_for, redirect, flash
+from flask import request, url_for, redirect, flash, current_app
 from .forms import LoginForm, RegistrationForm
 from ..models import User
 from .. import db
-from ..email import send_email
+from app.email import send_email
 from flask_login import login_user, login_required, current_user, logout_user
 import random
 
@@ -146,7 +146,8 @@ def register():
         user = User(
             email=form.email.data.lower(),
             username=username,
-            password=form.password.data)
+            password=form.password.data
+        )
 
         # Add the user to the database session and commit the changes
         db.session.add(user)
@@ -157,11 +158,11 @@ def register():
 
         # Send a confirmation email to the user's email address
         send_email(
-            user.email,
-            'Confirm Your Account',
-            'auth/email/confirm',
-            user=user,
-            token=token
+            '[CTrack] Confirm Your Account',
+            sender=current_app.config['CTRACK_ADMIN'],
+            recipients=[user.email],
+            text_body=render_template('auth/email/confirm.txt', user=user, token=token),
+            html_body=render_template('auth/email/confirm.html', user=user, token=token)
         )
 
         # Flash a message to indicate that a confirmation email has been sent
@@ -222,8 +223,11 @@ def resend_confirmation():
 
     # Send a confirmation email to the user's email address
     send_email(
-        current_user.email, 'Confirm Your Account',
-        'auth/email/confirm', user=current_user, token=token
+        '[CTrack] Confirm Your Account',
+        sender=current_app.config['CTRACK_ADMIN'],
+        recipients=[current_user.email],
+        text_body=render_template('auth/email/confirm.txt', user=current_user, token=token),
+        html_body=render_template('auth/email/confirm.html', user=current_user, token=token)
     )
 
     # Display a flash message to the user
