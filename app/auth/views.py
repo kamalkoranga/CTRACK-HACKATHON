@@ -193,7 +193,7 @@ def confirm(token):
     if current_user.confirm(token):
         db.session.commit()
         # Dual DB confirmation logic
-        confirm_user(current_user.username, current_user.email)
+        confirm_user(current_user.email)
         flash('You have confirmed your account. Thanks!')
     else:
         flash('The confirmation link is invalid or has expired.')

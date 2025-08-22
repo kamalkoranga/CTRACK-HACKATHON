@@ -144,14 +144,15 @@ class Post(db.Model):
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     post_name = db.Column(db.String(100))
-    post_data = db.Column(LargeBinary)
+    media_url = db.Column(db.String(255))
+    media_type = db.Column(db.String(20))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     featured = db.Column(db.Boolean, default=False)
     author_id = db.Column(
         db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'))
     comments = db.relationship('Comment', backref="post", passive_deletes=True)
     likes = db.relationship('Like', backref="post", passive_deletes=True)
-
+    
     def add_featured(self):
         self.featured = True
         db.session.add(self)

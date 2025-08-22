@@ -63,19 +63,13 @@ def index():
 
 @main.route("/image/<int:id>")
 def get_image(id):
-    """This route is only for retrieving images from the post
+    # Retrieve the post with the given ID from the database
+    post = Post.query.filter_by(id=id).first()
+    if not post or not post.media_url:
+        return "Image not found", 404
 
-    Args:
-        id (int): id of post
-
-    Returns:
-        image/jpeg: returns an image data
-    """
-    # Retrieve the post with the given ID from the database and uses as image
-    image = Post.query.filter_by(id=id).first()
-
-    # Return the post's image data as the response (image)
-    return image.post_data, {"Content-Type": "image/jpeg"}
+    # Redirect to the Supabase public URL
+    return redirect(post.media_url)
 
 
 @main.route("/user/<username>")

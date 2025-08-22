@@ -47,13 +47,38 @@ def confirm_user(email):
         async_write_to_remote(remote_confirm)
     return True
 
+from supabase import create_client, Client
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def upload_media_to_supabase(file, filename, bucket="ctrack"):
+    response = supabase.storage.from_(bucket).upload(filename, file)
+    # print('response: ', response)
+    url = supabase.storage.from_(bucket).get_public_url(filename)
+    return url
 
 # CREATE POST
 def create_post(body, post_name, post_data, author_id) -> Post:
+    # Upload media to Supabase Storage
+    media_url = upload_media_to_supabase(post_data, post_name)
+    # Infer media type from file extension
+    ext = post_name.split('.')[-1].lower()
+    if ext in ['jpg', 'jpeg', 'png', 'gif', 'heic']:
+        media_type = 'image'
+    elif ext in ['mp4', 'mov', 'avi']:
+        media_type = 'video'
+    elif ext in ['mp3', 'wav', 'aac']:
+        media_type = 'audio'
+    else:
+        media_type = 'other'
+
     post = Post(
         body=body,
         post_name=post_name,
-        post_data=post_data,
+        media_url=media_url,
+        media_type=media_type,
         author_id=author_id
     )
     # Save to local DB
@@ -64,7 +89,8 @@ def create_post(body, post_name, post_data, author_id) -> Post:
     post_body = post.body
     post_body_html = post.body_html
     post_post_name = post.post_name
-    post_post_data = post.post_data
+    post_media_url = post.media_url
+    post_media_type = post.media_type
     post_timestamp = post.timestamp
     post_featured = post.featured
     post_author_id = post.author_id
@@ -78,7 +104,8 @@ def create_post(body, post_name, post_data, author_id) -> Post:
                 body=post_body,
                 body_html=post_body_html,
                 post_name=post_post_name,
-                post_data=post_post_data,
+                media_url=post_media_url,
+                media_type=post_media_type,
                 timestamp=post_timestamp,
                 featured=post_featured,
                 author_id=post_author_id
