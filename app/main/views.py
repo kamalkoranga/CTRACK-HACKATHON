@@ -38,7 +38,7 @@ def index():
 
     page = request.args.get("page", 1, type=int)
     pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
-        page=page, per_page=10, error_out=False
+        page=page, per_page=5, error_out=False
     )
     posts = pagination.items
 
