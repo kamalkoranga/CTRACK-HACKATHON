@@ -10,6 +10,7 @@ from flask import (
 from . import main
 from flask_login import login_required, current_user
 from sqlalchemy import desc
+from sqlalchemy.orm import joinedload
 from .forms import PostForm, EditProfileForm
 from ..models import Post, User, Like, Comment
 from .. import db
@@ -37,13 +38,20 @@ def index():
     # Retrieve all posts from the database in descending order of timestamp
 
     page = request.args.get("page", 1, type=int)
-    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+    pagination = Post.query.options(
+        joinedload(Post.author),
+        joinedload(Post.comments),
+        joinedload(Post.likes)
+    ).order_by(Post.timestamp.desc()).paginate(
         page=page, per_page=5, error_out=False
     )
     posts = pagination.items
 
-    # Retrieve all comments from the database
-    comments = Comment.query.all()
+    # Only fetch comments for visible posts
+    post_ids = [post.id for post in posts]
+    comments = Comment.query.filter(Comment.post_id.in_(post_ids)).all()
+
+    # Limit user fields if possible
     users = User.query.filter(User.id != current_user.id).limit(6).all()
 
 
@@ -63,8 +71,8 @@ def index():
 
 @main.route("/image/<int:id>")
 def get_image(id):
-    # Retrieve the post with the given ID from the database
-    post = Post.query.filter_by(id=id).first()
+    # Only fetch the media_url field for efficiency
+    post = Post.query.with_entities(Post.media_url).filter_by(id=id).first()
     if not post or not post.media_url:
         return "Image not found", 404
 
@@ -77,15 +85,23 @@ def user(username):
     # Retrieve the profile of user from the database based on the provided username
     user_profile = User.query.filter_by(username=username).first_or_404()
 
-    # Retrieve 6 users from the database except current user
+    # Retrieve 6 users from the database except current user (only needed fields)
     users = User.query.filter(User.id != current_user.id).limit(6).all()
 
-    # Render the 'user.html' template and pass the user object to the template
-    return render_template(
-        "user.html", user=user_profile, users=users, nav_color="rgba(0,0,0,0.6)",
-        posts=Post.query.filter_by(author_id=user_profile.id).order_by(desc(Post.timestamp)).all(),
-    )
+    # Eager load posts with author, comments, likes
+    posts = Post.query.options(
+        joinedload(Post.author),
+        joinedload(Post.comments),
+        joinedload(Post.likes)
+    ).filter_by(author_id=user_profile.id).order_by(desc(Post.timestamp)).all()
 
+    return render_template(
+        "user.html",
+        user=user_profile,
+        users=users,
+        nav_color="rgba(0,0,0,0.6)",
+        posts=posts,
+    )
 
 @main.route("/edit-profile", methods=["GET", "POST"])
 @login_required
@@ -129,15 +145,14 @@ def edit_profile():
 @main.route("/like_post/<post_id>", methods=["POST"])
 @login_required
 def like_post(post_id):
-    # Get the post object based on the provided post_id
-    post = Post.query.filter_by(id=int(post_id)).first()
+    post = Post.query.get(post_id)
 
-    # Check if the user has already liked the post
+    if not post:
+        return jsonify({"error": "Post does not exist."}), 404
+
     like = Like.query.filter_by(
         author_id=current_user.id, post_id=post.id).first()
 
-    if not post:
-        return jsonify({"error": "Post does not exist."}, 400)
     if like:
         # If the user has already liked the post, remove the like
         db.session.delete(like)

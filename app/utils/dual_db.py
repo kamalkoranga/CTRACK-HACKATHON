@@ -62,7 +62,7 @@ def upload_media_to_supabase(file, filename, bucket="ctrack"):
 # CREATE POST
 def create_post(body, post_name, post_data, author_id) -> Post:
     # Upload media to Supabase Storage
-    media_url = upload_media_to_supabase(post_data, post_name)
+    media_url = upload_media_to_supabase(post_data, post_name) if post_data else None
     # Infer media type from file extension
     ext = post_name.split('.')[-1].lower()
     if ext in ['jpg', 'jpeg', 'png', 'gif', 'heic']:
