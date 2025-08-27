@@ -12,7 +12,7 @@ html, body {
 .timeline:before {
   content: '';
   position: absolute;
-  top: 5px;
+  top: 41px;
   bottom: 5px;
   width: 3px;
   background: #636464;
@@ -28,10 +28,10 @@ html, body {
 
 .timeline .timeline-time {
   position: absolute;
-  left: 0;
+  left: -10px;
   width: 18%;
   text-align: right;
-  top: 30px
+  top: 42px
 }
 
 .timeline .timeline-time .date,
@@ -42,7 +42,7 @@ html, body {
 
 .timeline .timeline-time .date {
   line-height: 16px;
-  font-size: 14px
+  font-size: 12px
 }
 
 .timeline .timeline-time .time {
