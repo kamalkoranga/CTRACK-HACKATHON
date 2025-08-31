@@ -30,3 +30,8 @@
 
 ## 🏁 Built At
 This project was created during [24 Hr Hackathon], at GEHU Haldwani inspired by the need for a focused space to track developer and student learning paths — like a portfolio, but centered on growth and progress.
+
+---
+
+###  🚀 Further Updates 
+[👉 How I optimized this project](https://misslogs.klka.me/posts/2025-08-26-hackathon-project-optimization)
