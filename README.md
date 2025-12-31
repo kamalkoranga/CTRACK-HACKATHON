@@ -15,6 +15,10 @@
 🔗 [Live URL](https://ctrack-hackathon-e93l.onrender.com)
 > ⚠️ Note: The site may load slowly as it's hosted on Render (free tier) with a Supabase backend. Performance may vary.
 
+## Workflow
+- Run: `flask db upgrade` -> `python app/restore.py`
+- It will copy the remote db to sql file for faster access.
+
 ## 🛠️ Tech Stack
 
 - Frontend: [html, css, js]

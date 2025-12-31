@@ -12,7 +12,7 @@ async function follow_user(data, username) {
   } catch (error) {
     console.log(error);
   }
-  console.log('followed');
+  // console.log('followed');
 }
 
 async function unfollow_user(data, username) {
@@ -29,7 +29,7 @@ async function unfollow_user(data, username) {
   } catch (error) {
     console.log(error);
   }
-  console.log('unfollowed');
+  // console.log('unfollowed');
 }
 
 function follow_unfollow(data, username) {

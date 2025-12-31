@@ -9,10 +9,11 @@ from flask import (
 )
 from . import main
 from flask_login import login_required, current_user
-from sqlalchemy import desc
+from sqlalchemy import desc, or_, and_
 from sqlalchemy.orm import joinedload
 from .forms import PostForm, EditProfileForm
 from ..models import Post, User, Like, Comment
+from datetime import datetime
 from .. import db
 from ..email import send_email
 from app.utils.dual_db import create_post, update_user_profile, toggle_like_remote, \
@@ -34,26 +35,44 @@ def index():
 
         flash("Posted Successfully")
         return redirect(url_for("main.index"))
-
-    # Retrieve all posts from the database in descending order of timestamp
-
-    page = request.args.get("page", 1, type=int)
-    pagination = Post.query.options(
+    
+    # cursor based pagination
+    cursor = request.args.get("cursor", None)
+    limit = 5
+    query = Post.query.options(
         joinedload(Post.author),
         joinedload(Post.comments),
         joinedload(Post.likes)
-    ).order_by(Post.timestamp.desc()).paginate(
-        page=page, per_page=5, error_out=False
-    )
-    posts = pagination.items
+    ).order_by(Post.timestamp.desc(), Post.id.desc())
 
-    # Only fetch comments for visible posts
+    if cursor:
+        cursor_ts, cursor_id = cursor.split("|")
+        cursor_ts = datetime.fromisoformat(cursor_ts)
+        cursor_id = int(cursor_id)
+
+        query = query.filter(
+            or_(
+                Post.timestamp < cursor_ts,
+                and_(
+                    Post.timestamp == cursor_ts,
+                    Post.id < cursor_id
+                )
+            )
+        )
+
+    posts = query.limit(limit + 1).all()
+    has_more = len(posts) > limit
+    posts = posts[:limit]
+
+    next_cursor = None
+    if has_more:
+        last = posts[-1]
+        next_cursor = f"{last.timestamp.isoformat()}|{last.id}"
+
     post_ids = [post.id for post in posts]
     comments = Comment.query.filter(Comment.post_id.in_(post_ids)).all()
 
-    # Limit user fields if possible
     users = User.query.filter(User.id != current_user.id).limit(6).all()
-
 
     """Render the 'index.html' template, passing the form, posts and comments
     to the template"""
@@ -63,7 +82,7 @@ def index():
         posts=posts,
         comments=comments,
         nav_color="black",
-        pagination=pagination,
+        next_cursor=next_cursor,
         users=users,
         user=current_user
     )
@@ -82,18 +101,43 @@ def get_image(id):
 
 @main.route("/user/<username>")
 def user(username):
-    # Retrieve the profile of user from the database based on the provided username
     user_profile = User.query.filter_by(username=username).first_or_404()
 
-    # Retrieve 6 users from the database except current user (only needed fields)
-    users = User.query.filter(User.id != current_user.id).limit(6).all()
-
-    # Eager load posts with author, comments, likes
-    posts = Post.query.options(
+    # cursor based pagination for this user's posts
+    cursor = request.args.get("cursor", None)
+    limit = 5
+    query = Post.query.options(
         joinedload(Post.author),
         joinedload(Post.comments),
         joinedload(Post.likes)
-    ).filter_by(author_id=user_profile.id).order_by(desc(Post.timestamp)).all()
+    ).filter_by(author_id=user_profile.id).order_by(Post.timestamp.desc(), Post.id.desc())
+
+    if cursor:
+        try:
+            cursor_ts, cursor_id = cursor.split("|")
+            cursor_ts = datetime.fromisoformat(cursor_ts)
+            cursor_id = int(cursor_id)
+            query = query.filter(
+                or_(
+                    Post.timestamp < cursor_ts,
+                    and_(Post.timestamp == cursor_ts, Post.id < cursor_id)
+                )
+            )
+        except Exception:
+            pass  # invalid cursor -> return first page
+
+    posts = query.limit(limit + 1).all()
+    has_more = len(posts) > limit
+    posts = posts[:limit]
+
+    next_cursor = None
+    if has_more:
+        last = posts[-1]
+        next_cursor = f"{last.timestamp.isoformat()}|{last.id}"
+
+    post_ids = [post.id for post in posts]
+    comments = Comment.query.filter(Comment.post_id.in_(post_ids)).all()
+    users = User.query.filter(User.id != current_user.id).limit(6).all()
 
     return render_template(
         "user.html",
@@ -101,6 +145,8 @@ def user(username):
         users=users,
         nav_color="rgba(0,0,0,0.6)",
         posts=posts,
+        comments=comments,
+        next_cursor=next_cursor
     )
 
 @main.route("/edit-profile", methods=["GET", "POST"])

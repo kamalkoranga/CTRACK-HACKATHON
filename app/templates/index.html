@@ -271,6 +271,10 @@
 }
 
 </style>
+
+{% if next_cursor %}
+    <meta name="next-cursor" content="{{ next_cursor }}">
+{% endif %}
 {% endblock style %}
 
 {% block content %}
@@ -409,6 +413,7 @@
 
         <hr>
 
+        <div id="posts-container">
             {% for post in posts %}
                 <div class="card post my-3">
                     <div class="card-body mb-0">
@@ -535,6 +540,14 @@
                     </div>
                 </div>
             {% endfor %}
+        </div>
+
+        <!-- <div id="scroll-sentinel" class="text-center py-4">
+            <span id="loading-spinner" class="d-none">Loading…</span>
+        </div> -->
+        <div id="scroll-sentinel" class="text-center py-4">
+            <div id="loading-spinner" class="spinner-border text-secondary d-none"></div>
+        </div>
     </div>
 
     <div class="col-xl-3 col-lg-4 third-column flex-fill">
@@ -602,11 +615,6 @@
         </div>
     </div>
 </div>
-{% if pagination %}
-<div class="">
-    {{ macros.pagination_widget(pagination, '.index') }}
-</div>
-{% endif %}
 
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1"
@@ -789,6 +797,41 @@
             console.log(error);
         }
     }
+
+    let nextCursor = document.querySelector("meta[name='next-cursor']")?.content;
+    let loading = false;
+
+    const sentinel = document.getElementById("scroll-sentinel");
+    const spinner = document.getElementById("loading-spinner");
+
+    const observer = new IntersectionObserver(async (entries) => {
+        if (!entries[0].isIntersecting || loading || !nextCursor) return;
+
+        loading = true;
+        spinner.classList.remove("d-none");
+
+        const res = await fetch(`/feed?cursor=${encodeURIComponent(nextCursor)}`);
+        const html = await res.text();
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        const newPosts = doc.querySelectorAll("#posts-container > *");
+        newPosts.forEach(post =>
+            document.getElementById("posts-container").appendChild(post)
+        );
+
+        nextCursor = doc.querySelector("meta[name='next-cursor']")?.content || null;
+        // console.log("Next cursor:", nextCursor);
+
+        spinner.classList.add("d-none");
+        loading = false;
+
+        if (!nextCursor) observer.disconnect();
+    });
+
+    observer.observe(sentinel);
+
 </script>
 {{ pagedown.include_pagedown() }}
 {% endblock script %}
