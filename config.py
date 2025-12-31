@@ -15,6 +15,7 @@ class Config:
     CTRACK_MAIL_SENDER = 'CTRACK Team <team@ctrack.com>'
     CTRACK_ADMIN = os.environ.get('CTRACK_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
 
     @staticmethod
     def init_app(app):
